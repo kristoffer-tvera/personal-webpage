@@ -1,0 +1,20 @@
+
+.section {
+    &__container {
+        background-color: $white;
+        min-height: 100vh;
+        padding: $indent-md;
+
+        @include breakpoint-lg {
+            padding: $indent-lg;
+        }
+
+        @include breakpoint-xl {
+            padding: $indent-xl;
+        }
+
+        &:nth-child(odd){
+            background-color: $pink-light;
+        }
+    }
+}

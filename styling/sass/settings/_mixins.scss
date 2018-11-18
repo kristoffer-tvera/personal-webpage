@@ -1,0 +1,18 @@
+
+@mixin breakpoint-md() {
+    @media screen and (min-width: $screen-md){
+        @content;
+    }
+}
+
+@mixin breakpoint-lg() {
+    @media screen and (min-width: $screen-lg){
+        @content;
+    }
+} 
+
+@mixin breakpoint-xl() {
+    @media screen and (min-width: $screen-xl){
+        @content;
+    }
+}
