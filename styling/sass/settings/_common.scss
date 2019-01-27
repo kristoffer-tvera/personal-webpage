@@ -1,8 +1,62 @@
-
 body {
     font-family: $font-family-alt;
 }
 
-h1,h2,h3,h4,h5,h6{
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: $font-family-main;
+}
+
+h1 {
+    font-size: $header * 1.7;
+}
+
+h2 {
+    font-size: $header * 1.5;
+}
+
+h3 {
+    font-size: $header * 1.3;
+}
+
+h4 {
+    font-size: $header * 1.2;
+}
+
+h5 {
+    font-size: $header * 1.1;
+}
+
+h6 {
+    font-size: $header * 1;
+}
+
+a {
+    color: initial;
+    text-decoration: initial;
+    &:hover {
+        color: $red;
+    }
+}
+
+a,
+p {
+    font-size: $paragraph;
+}
+
+li {
+    font-size: $paragraph*1.25;
+}
+
+.flex {
+    &--column{
+        flex-direction: column;
+    }
+    &--row{
+        flex-direction: row;
+    }
 }

@@ -3,10 +3,12 @@ $font-family-main: 'Source Sans Pro', sans-serif;
 $font-family-alt: 'Playfair Display', serif;
 
 //Colors
+$red: #d40429;
 $pink: #fb929e;
 $blue: #aedefc;
 $white: #fff6f6;
 $pink-light: #ffdfdf;
+$black: #000000;
 
 //Spacing
 $indent-md: 15px;
@@ -14,8 +16,14 @@ $indent-lg: 25px;
 $indent-xl: 35px;
 
 //Font-size
+$header: 2.25rem;
+$paragraph: 1.25rem;
+$link: 1.5rem;
 
 //Responsive Breakpoints
 $screen-md: 768px;
 $screen-lg: 1100px;
 $screen-xl: 1400px;
+
+//Animation
+$transition-speed: 350ms;
