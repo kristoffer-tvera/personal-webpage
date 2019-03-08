@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Home</title>
+    <title>Projects</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -26,32 +26,36 @@
                 <path d="M5 5h260L135 230" />
             </svg>
         </a>
+        <ul class="header__list">
+            <li class="header__list-element">
+                <a class="header__link" href="/about.html">About me</a>
+            </li>
+            <li class="header__list-element">
+                <a class="header__link" href="/experience.html">Experience</a>
+            </li>
+            <li class="header__list-element">
+                <a class="header__link" href="/projects.html">Projects</a>
+            </li>
+            <li class="header__list-element">
+                <a class="header__link" href="/contact.html">Contact</a>
+            </li>
+        </ul>
     </header>
 
-    <div class="section__wrapper">
-        <section class="section__container" id="hero">
-            <div class="hero__container">
-                <div class="hero__line">
-                    <a href="/about.html" class="hero__line--link">About me</a>
-                </div>
-                <div class="hero__line">
-                    <a href="/experience.html" class="hero__line--link">Experience</a>
-                </div>
-                <div class="hero__line">
-                    <a href="/projects.html" class="hero__line--link">Projects</a>
-                </div>
-                <div class="hero__line">
-                    <a href="/contact.html" class="hero__line--link">Contact</a>
-                </div>
-            </div>
-        </section>
-    </div>
+
+    <main class="section__wrapper">
+            <section class="section__container centered column">
+                    <h2> Projects</h2>
+                    <hr>
+            </section>
+    </main>
 
     <footer class="footer__container">
 
     </footer>
 
     <script src="script/site.min.js"></script>
+    <script src="//instant.page/1.2.1" type="module" integrity="sha384-/IkE5iZAM/RxPto8B0nvKlMzIyCWtYocF01PbGGp1qElJuxv9J4whdWBRtzZltWn"></script>
     <script src="sw.js"></script>
 </body>
 
