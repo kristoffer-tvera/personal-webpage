@@ -1,5 +1,12 @@
+html {
+    height: 100%;
+}
+
 body {
     font-family: $font-family-alt;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 h1,
@@ -35,9 +42,15 @@ h6 {
     font-size: $header * 1;
 }
 
+hr {
+    width: 100%;
+}
+
 a {
     color: initial;
     text-decoration: initial;
+    transition: $transition-speed;
+    
     &:hover {
         color: $red;
     }

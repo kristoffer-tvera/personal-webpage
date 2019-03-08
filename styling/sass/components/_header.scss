@@ -1,27 +1,54 @@
-
 .header {
     &__container {
-        position: absolute;
         width: 100%;
         box-sizing: border-box;
-        user-select: none;
-        pointer-events: none;
-
+        display: flex;
+        justify-content: space-between;
         padding: $indent-md;
-
         @include breakpoint-lg {
             padding: $indent-lg;
         }
-
         @include breakpoint-xl {
             padding: $indent-xl;
         }
     }
     &__logo {
         height: 100%;
+
         &--wrapper {
             width: auto;
             height: 96px;
+            display: inline-block;
+
+            & path{
+                transition: $transition-speed
+            }
+            
+            &:hover path{
+                fill: $red;
+            }
         }
+    }
+    &__list {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+
+        &-element {
+            display: block;
+            width: 100%;
+            text-align: right;
+            @include breakpoint-md {
+                width: auto;
+                margin: 0 1rem;
+            }
+        }
+    }
+    &__link {
+        display: block;
+        height: 100%;
     }
 }
