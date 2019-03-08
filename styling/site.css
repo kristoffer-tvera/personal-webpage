@@ -275,6 +275,11 @@ li {
   height: 100%;
 }
 
+.header__link.active {
+  color: #d40429;
+  text-decoration: underline;
+}
+
 .hero__container {
   flex: 1;
   display: flex;
