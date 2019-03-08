@@ -6,10 +6,10 @@
         justify-content: space-between;
         padding: $indent-md;
         @include breakpoint-lg {
-            padding: $indent-lg;
+            padding: $indent-lg $indent-lg 0;
         }
         @include breakpoint-xl {
-            padding: $indent-xl;
+            padding: $indent-xl $indent-xl 0;
         }
     }
     &__logo {

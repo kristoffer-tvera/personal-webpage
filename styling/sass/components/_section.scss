@@ -3,14 +3,12 @@
         background-color: $white;
         display: flex;
         flex: 1;
-
     }
     &__container {
         display: flex;
         padding: $indent-md;
         max-width: 1400px;
         margin: 0 auto;
-
         box-sizing: border-box;
         @include breakpoint-lg {
             padding: $indent-lg;
@@ -20,13 +18,18 @@
         }
         &.centered {
             justify-content: center;
-            align-items: center;
         }
         &.column {
             flex-direction: column;
         }
-    }
-    &__list {
-        &--item {}
+
+        & a,p {
+            letter-spacing: 0.075rem;
+            padding: 1rem 0;
+        }
+
+        & a {
+            text-decoration: underline;
+        }
     }
 }

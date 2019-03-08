@@ -210,6 +210,10 @@ li {
   flex-direction: row;
 }
 
+.text-center {
+  text-align: center;
+}
+
 .header__container {
   width: 100%;
   box-sizing: border-box;
@@ -220,13 +224,13 @@ li {
 
 @media screen and (min-width: 1100px) {
   .header__container {
-    padding: 25px;
+    padding: 25px 25px 0;
   }
 }
 
 @media screen and (min-width: 1400px) {
   .header__container {
-    padding: 35px;
+    padding: 35px 35px 0;
   }
 }
 
@@ -336,11 +340,19 @@ li {
 
 .section__container.centered {
   justify-content: center;
-  align-items: center;
 }
 
 .section__container.column {
   flex-direction: column;
+}
+
+.section__container a, .section__container p {
+  letter-spacing: 0.075rem;
+  padding: 1rem 0;
+}
+
+.section__container a {
+  text-decoration: underline;
 }
 
 .sr-only {

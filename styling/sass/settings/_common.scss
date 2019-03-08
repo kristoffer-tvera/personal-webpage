@@ -73,3 +73,9 @@ li {
         flex-direction: row;
     }
 }
+
+.text {
+    &-center {
+        text-align: center;
+    }
+}
