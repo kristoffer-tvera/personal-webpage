@@ -200,6 +200,11 @@ p {
 
 li {
   font-size: 1.5625rem;
+  margin: 0.5rem 0;
+}
+
+li > a {
+  font-size: 1.5625rem;
 }
 
 .flex--column {
@@ -346,9 +351,13 @@ li {
   flex-direction: column;
 }
 
-.section__container a, .section__container p {
-  letter-spacing: 0.075rem;
+.section__container p {
   padding: 1rem 0;
+}
+
+.section__container a,
+.section__container p {
+  letter-spacing: 0.075rem;
 }
 
 .section__container a {

@@ -63,6 +63,10 @@ p {
 
 li {
     font-size: $paragraph*1.25;
+    margin: 0.5rem 0;
+}
+li>a {
+    font-size: $paragraph*1.25;
 }
 
 .flex {

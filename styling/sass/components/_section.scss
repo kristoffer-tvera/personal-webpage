@@ -22,12 +22,13 @@
         &.column {
             flex-direction: column;
         }
-
-        & a,p {
-            letter-spacing: 0.075rem;
+        & p {
             padding: 1rem 0;
         }
-
+        & a,
+        p {
+            letter-spacing: 0.075rem;
+        }
         & a {
             text-decoration: underline;
         }
