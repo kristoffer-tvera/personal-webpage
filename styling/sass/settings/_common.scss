@@ -16,6 +16,7 @@ h4,
 h5,
 h6 {
     font-family: $font-family-main;
+    margin-top: 1em;
 }
 
 h1 {
@@ -62,11 +63,11 @@ p {
 }
 
 li {
-    font-size: $paragraph*1.25;
+    font-size: $paragraph;
     margin: 0.5rem 0;
 }
 li>a {
-    font-size: $paragraph*1.25;
+    font-size: $paragraph;
 }
 
 i {

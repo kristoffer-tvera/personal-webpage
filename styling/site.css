@@ -153,6 +153,7 @@ h4,
 h5,
 h6 {
   font-family: "Roboto", sans-serif;
+  margin-top: 1em;
 }
 
 h1 {
@@ -199,12 +200,12 @@ p {
 }
 
 li {
-  font-size: 1.5625rem;
+  font-size: 1.25rem;
   margin: 0.5rem 0;
 }
 
 li > a {
-  font-size: 1.5625rem;
+  font-size: 1.25rem;
 }
 
 i {
@@ -363,6 +364,7 @@ i {
 .section__container a,
 .section__container p {
   letter-spacing: 0.075rem;
+  line-height: 1.5;
 }
 
 .section__container a {
