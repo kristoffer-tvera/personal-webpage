@@ -69,6 +69,10 @@ li>a {
     font-size: $paragraph*1.25;
 }
 
+i {
+    font-style: italic;
+}
+
 .flex {
     &--column{
         flex-direction: column;

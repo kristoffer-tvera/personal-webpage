@@ -41,6 +41,7 @@
             display: block;
             width: 100%;
             text-align: right;
+            margin: 0.25rem 0;
             @include breakpoint-md {
                 width: auto;
                 margin: 0 1rem;

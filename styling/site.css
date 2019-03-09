@@ -207,6 +207,10 @@ li > a {
   font-size: 1.5625rem;
 }
 
+i {
+  font-style: italic;
+}
+
 .flex--column {
   flex-direction: column;
 }
@@ -270,6 +274,7 @@ li > a {
   display: block;
   width: 100%;
   text-align: right;
+  margin: 0.25rem 0;
 }
 
 @media screen and (min-width: 768px) {
