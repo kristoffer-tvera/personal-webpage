@@ -1,18 +1,5 @@
 // Set a name for the current cache
-var cacheName = 'v1';
-
-// Default files to always cache
-var cacheFiles = [
-	'./',
-	'./about',
-	'./experience',
-	'./projects',
-	'./contact',
-	'./assets/site.min.css',
-	'./assets/site.min.js',
-	'./images',
-	'https://fonts.googleapis.com/css?family=Roboto'
-]
+var CACHE = 'v1';
 
 self.addEventListener('install', function (evt) {
 	evt.waitUntil(precache());
@@ -24,19 +11,33 @@ self.addEventListener('fetch', function (evt) {
 });
 
 
-async function precache() {
-	const cache = await caches.open(cacheName);
-	return cache.addAll(cacheFiles);
+function precache() {
+	return caches.open(CACHE).then(function (cache) {
+		return cache.addAll([
+			'./',
+			'./about',
+			'./experience',
+			'./projects',
+			'./contact',
+			'./assets/site.min.css',
+			'./assets/site.min.js',
+			'https://fonts.googleapis.com/css?family=Roboto'
+		]);
+	});
 }
 
-async function fromCache(request) {
-	const cache = await caches.open(cacheName);
-	const matching = await cache.match(request);
-	return matching || Promise.reject('no-match');
+function fromCache(request) {
+	return caches.open(CACHE).then(function (cache) {
+		return cache.match(request).then(function (matching) {
+			return matching || Promise.reject('no-match');
+		});
+	});
 }
 
-async function update(request) {
-	const cache = await caches.open(CACHE);
-	const response = await fetch(request);
-	return cache.put(request, response);
+function update(request) {
+	return caches.open(CACHE).then(function (cache) {
+		return fetch(request).then(function (response) {
+			return cache.put(request, response);
+		});
+	});
 }

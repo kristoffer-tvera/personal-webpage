@@ -82,7 +82,7 @@ module.exports = function (grunt) {
                     "script/partials/Main.js"
                 ],
                 // the location of the resulting JS file
-                dest: '/script/site.js'
+                dest: 'script/site.js'
             },
             temp: {
                 // the files to concatenate
@@ -97,7 +97,7 @@ module.exports = function (grunt) {
                     "script/partials/Main.js"
                 ],
                 // the location of the resulting JS file
-                dest: 'script/main.js'
+                dest: 'script/site.js'
             },
         },
 
