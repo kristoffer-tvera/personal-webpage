@@ -3,12 +3,8 @@
 
 # TEAM
 
-    <name> -- <role> -- <twitter>
-
-# THANKS
-
-    <name>
+    Kristoffer Tverå
 
 # TECHNOLOGY COLOPHON
 
-    CSS3, HTML5, Grunt, NPM
+    CSS3, HTML5, Grunt, NPM, Sass, Javascript, Instant.Page

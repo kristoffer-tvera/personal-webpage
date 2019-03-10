@@ -23,7 +23,7 @@ module.exports = function (grunt) {
                     sourcemap: false
                 },
                 files: {
-                    'styling/site.min.css': 'styling/sass/main.scss',
+                    'dist/assets/site.min.css': 'styling/sass/main.scss',
                 }
             },
         },
@@ -46,7 +46,7 @@ module.exports = function (grunt) {
                 src: 'styling/site.css'
             },
             min: {
-                src: 'styling/site.min.css'
+                src: 'dist/assets/site.min.css'
             }
         },
 
@@ -55,7 +55,7 @@ module.exports = function (grunt) {
             bsFiles: ["script/*.js", "styling/*.css", "!**/node_modules/**/*"],
             options: {
                 server: {
-                    baseDir: "./" // make server from root dir
+                    baseDir: "./dist" // make server from root dir
                 },
                 port: 8000,
                 ui: {
@@ -82,15 +82,13 @@ module.exports = function (grunt) {
                     "script/partials/Main.js"
                 ],
                 // the location of the resulting JS file
-                dest: 'script/site.js'
+                dest: '/script/site.js'
             },
             temp: {
                 // the files to concatenate
                 options: {
                     sourceMap: true,
                     sourceMapStyle: 'link'
-
-
                 },
                 src: [
                     "script/partials/Globals.js",
@@ -114,7 +112,7 @@ module.exports = function (grunt) {
             },
             dist: {
                 files: {
-                    'script/site.min.js': ['script/site.js']
+                    'dist/assets/site.min.js': ['script/site.js']
                 }
             }
         },
