@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Please read: https://msdn.microsoft.com/en-us/library/ie/dn455106.aspx -->
+<?xml version="1.0" encoding="utf-8"?>
 <browserconfig>
-   <msapplication>
-      <tile>
-         <TileColor>#ffffff</TileColor>
-      </tile>
-   </msapplication>
+    <msapplication>
+        <tile>
+            <square150x150logo src="/images/mstile-150x150.png"/>
+            <TileColor>#603cba</TileColor>
+        </tile>
+    </msapplication>
 </browserconfig>
