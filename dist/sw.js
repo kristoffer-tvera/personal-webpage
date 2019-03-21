@@ -5,9 +5,17 @@ self.addEventListener('install', function (evt) {
 	evt.waitUntil(precache());
 });
 
-self.addEventListener('fetch', function (evt) {
-	evt.respondWith(fromCache(evt.request));
-	evt.waitUntil(update(evt.request));
+// self.addEventListener('fetch', function (evt) {
+// 	evt.respondWith(fromCache(evt.request));
+// 	evt.waitUntil(update(evt.request));
+// });
+
+self.addEventListener('fetch', function (event) {
+	event.respondWith(
+		caches.match(event.request).then(function (response) {
+			return response || fetch(event.request);
+		})
+	);
 });
 
 
@@ -21,23 +29,23 @@ function precache() {
 			'./contact',
 			'./assets/site.min.css',
 			'./assets/site.min.js',
-			'https://fonts.googleapis.com/css?family=Roboto'
+			// 'https://fonts.googleapis.com/css?family=Roboto'
 		]);
 	});
 }
 
-function fromCache(request) {
-	return caches.open(CACHE).then(function (cache) {
-		return cache.match(request).then(function (matching) {
-			return matching || Promise.reject('no-match');
-		});
-	});
-}
+// function fromCache(request) {
+// 	return caches.open(CACHE).then(function (cache) {
+// 		return cache.match(request).then(function (matching) {
+// 			return matching || Promise.reject('no-match');
+// 		});
+// 	});
+// }
 
-function update(request) {
-	return caches.open(CACHE).then(function (cache) {
-		return fetch(request).then(function (response) {
-			return cache.put(request, response);
-		});
-	});
-}
+// function update(request) {
+// 	return caches.open(CACHE).then(function (cache) {
+// 		return fetch(request).then(function (response) {
+// 			return cache.put(request, response);
+// 		});
+// 	});
+// }
