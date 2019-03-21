@@ -1,0 +1,15 @@
+.footer{
+    &__container{
+        text-align: center;
+        background-color: red;
+        & > a {
+            padding: 0.5rem 0;
+        }
+
+        @include breakpoint-xl{
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    }
+}
