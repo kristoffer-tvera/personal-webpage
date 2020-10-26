@@ -1,0 +1,8 @@
+.editorconfig
+.gitignore
+Gruntfile.js
+package.json
+package-lock.json
+styling/
+script/
+node_modules/
