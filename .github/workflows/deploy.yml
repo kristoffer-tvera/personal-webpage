@@ -31,7 +31,8 @@ jobs:
       - name: FTP-Deploy-Action
         uses: SamKirkland/FTP-Deploy-Action@3.1.1
         with:
-          ftp-server: ftp://ftp.bzl.no/
-          ftp-username: bzl.no
+          ftp-server: 134.209.176.222
+          ftp-username: webroot
           ftp-password: ${{ secrets.FTP_PASSWORD }}
           local-dir: dist
+          server-dir: ./www.bzl.no/
