@@ -29,10 +29,10 @@ jobs:
         run: cd dist && ls && cd ..
 
       - name: FTP-Deploy-Action
-        uses: SamKirkland/FTP-Deploy-Action@3.1.1
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          ftp-server: 134.209.176.222
-          ftp-username: webroot
-          ftp-password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: dist
+          server: 134.209.176.222
+          username: webroot
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
           server-dir: ./www.bzl.no/
