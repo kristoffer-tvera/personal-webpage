@@ -1,0 +1,14 @@
+.git
+.github
+node_modules
+dist
+dist-ssr
+*.log
+*.local
+.env
+.env.*
+README.md
+agent-pipeline-builder-instructions.md
+deploy/compose.yaml
+deploy/manifest.json
+deploy/nginx/

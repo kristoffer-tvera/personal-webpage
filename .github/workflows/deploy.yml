@@ -1,0 +1,251 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-personal-webpage
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: write
+    env:
+      SITE_ID: personal-webpage
+      DEPLOY_PUBLIC_CHECKS: ${{ vars.DEPLOY_PUBLIC_CHECKS }}
+    steps:
+      - name: Require production branch
+        shell: bash
+        run: test "$GITHUB_REF" = "refs/heads/master"
+
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Validate release configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          SITE_ID="$SITE_ID" WEB_IMAGE="ghcr.io/example/personal-webpage-web@sha256:$(printf '%064d' 0)" docker compose -f deploy/compose.yaml config --quiet
+          ruby -rjson -ryaml -ruri -e '
+            manifest = JSON.parse(File.read("deploy/manifest.json"))
+            compose = YAML.safe_load(File.read("deploy/compose.yaml"))
+            ports = compose.fetch("services").values.flat_map { |service| service.fetch("ports", []) }
+              .map { |mapping| mapping.split(":")[1].to_i }.sort
+            abort "manifest/Compose port mismatch" unless ports == manifest.fetch("ports").sort
+            abort "manifest site ID mismatch" unless manifest.fetch("site") == "personal-webpage"
+            abort "unexpected Compose project name" unless compose.fetch("name") == "${SITE_ID:?required}"
+            abort "frontend-only Compose must contain only the web service" unless compose.fetch("services").keys == ["web"]
+            checks = manifest.fetch("checks")
+            checks.each do |check|
+              uri = URI.parse(check.fetch("url"))
+              abort "checks must be HTTPS on the standard port without credentials" unless uri.is_a?(URI::HTTPS) && uri.port == 443 && uri.userinfo.nil?
+            end
+            manifest.fetch("domains").each do |domain|
+              nginx_path = "deploy/nginx/#{domain}.conf"
+              abort "missing Nginx host file: #{domain}" unless File.file?(nginx_path)
+              server_names = File.read(nginx_path).scan(/^\s*server_name\s+([^;]+);/).flatten
+              abort "unexpected hostnames in #{nginx_path}" unless server_names == [domain, domain]
+              abort "missing HTTPS check for #{domain}" unless checks.any? { |check| check.fetch("url").start_with?("https://#{domain}/") && check.fetch("status") == 200 }
+            end
+          '
+
+      - name: Prepare release identity
+        id: identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_id="${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          [[ "$release_id" =~ ^[a-f0-9]{40}-[0-9]+-[0-9]+$ ]]
+          image_name="ghcr.io/${GITHUB_REPOSITORY,,}-web"
+          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
+          echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_ID=$release_id" >> "$GITHUB_ENV"
+          echo "IMAGE_NAME=$image_name" >> "$GITHUB_ENV"
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Build image for startup checks
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: personal-webpage:web-test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test non-root, read-only image behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          image=personal-webpage:web-test
+          test "$(docker image inspect --format '{{.Config.User}}' "$image")" = "101:101"
+          docker run --detach --name personal-webpage-test --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=16m,mode=1777 \
+            --memory=64m --cpus=0.50 --pids-limit=100 \
+            -p 127.0.0.1:18080:8080 "$image"
+          trap 'docker rm --force personal-webpage-test >/dev/null 2>&1 || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:18080/healthz >/dev/null; then break; fi
+            if [[ "$attempt" == 30 ]]; then docker logs personal-webpage-test; exit 1; fi
+            sleep 2
+          done
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:18080/)" = 200
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:18080/deep/link)" = 200
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:18080/assets/missing.js)" = 404
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:18080/missing.svg)" = 404
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:18080/api)" = 404
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:18080/api/health)" = 404
+          asset="$(grep -oE '/assets/[^" ]+\.js' dist/index.html | head -n 1)"
+          curl --fail --silent --head http://127.0.0.1:18080/index.html | grep -qi 'Cache-Control: no-cache'
+          curl --fail --silent --head "http://127.0.0.1:18080$asset" | grep -qi 'Cache-Control: public, max-age=31536000, immutable'
+          for attempt in {1..30}; do
+            if [[ "$(docker inspect --format '{{.State.Health.Status}}' personal-webpage-test)" == healthy ]]; then break; fi
+            if [[ "$attempt" == 30 ]]; then docker logs personal-webpage-test; exit 1; fi
+            sleep 2
+          done
+
+      - name: Scan image for fixable high and critical vulnerabilities
+        run: >-
+          docker run --rm
+          -v /var/run/docker.sock:/var/run/docker.sock
+          -v "$HOME/.cache/trivy:/root/.cache/"
+          aquasec/trivy@sha256:7228e304ae0f610a1fad937baa463598cadac0c2ac4027cc68f3a8b997115689
+          image --scanners vuln --ignore-unfixed --severity HIGH,CRITICAL
+          --exit-code 1 personal-webpage:web-test
+
+      - name: Log in to GHCR
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish immutable image
+        id: publish
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.identity.outputs.image_name }}:${{ steps.identity.outputs.release_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+
+      - name: Assemble exact release bundle
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          set -euo pipefail
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+          mkdir -p "$RUNNER_TEMP/release/nginx"
+          cp deploy/compose.yaml deploy/manifest.json "$RUNNER_TEMP/release/"
+          cp deploy/nginx/www.bzl.no.conf "$RUNNER_TEMP/release/nginx/"
+          printf 'WEB_IMAGE=%s@%s\n' "$IMAGE_NAME" "$IMAGE_DIGEST" > "$RUNNER_TEMP/release/images.env"
+          test "$(find "$RUNNER_TEMP/release" -type f | wc -l)" -eq 4
+          test "$(grep -Ec '^WEB_IMAGE=ghcr\.io/[^ ]+@sha256:[a-f0-9]{64}$' "$RUNNER_TEMP/release/images.env")" -eq 1
+
+      - name: Deploy release bundle
+        id: apply
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [[ "$SITE_ID" =~ ^[a-z][a-z0-9-]{0,39}$ ]]
+          [[ "$RELEASE_ID" =~ ^[a-f0-9]{40}-[0-9]+-[0-9]+$ ]]
+          python -c 'import ipaddress,sys; ipaddress.ip_address(sys.argv[1])' "$DEPLOY_HOST"
+          case "$DEPLOY_PUBLIC_CHECKS" in
+            true) public_flag=--public ;;
+            false) public_flag= ;;
+            *) echo "DEPLOY_PUBLIC_CHECKS must be explicitly true or false" >&2; exit 1 ;;
+          esac
+          install -d -m 0700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 0600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host deploy-droplet
+            HostName $DEPLOY_HOST
+            User deploy
+            Port 22
+            IdentityFile $HOME/.ssh/id_ed25519
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 10
+          EOF
+          chmod 0600 "$HOME/.ssh/config"
+          remote_dir="/srv/deploy/incoming/$SITE_ID/$RELEASE_ID"
+          timeout 60 ssh deploy-droplet "install -d -m 0700 -- '$remote_dir'"
+          timeout 300 scp "$RUNNER_TEMP/release/compose.yaml" "$RUNNER_TEMP/release/manifest.json" "$RUNNER_TEMP/release/images.env" "deploy-droplet:$remote_dir/"
+          timeout 300 scp -r "$RUNNER_TEMP/release/nginx" "deploy-droplet:$remote_dir/"
+          timeout 300 ssh deploy-droplet "sudo -n /usr/local/sbin/site-deploy apply '$SITE_ID' '$RELEASE_ID' $public_flag"
+          echo "PUBLIC_CHECKS=$DEPLOY_PUBLIC_CHECKS" >> "$GITHUB_OUTPUT"
+
+      - name: Verify public HTTPS and recover on failure
+        if: steps.apply.outputs.PUBLIC_CHECKS == 'true'
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          status_is() {
+            local expected="$1" url="$2" actual
+            actual="$(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' "$url")"
+            [[ "$actual" == "$expected" ]]
+          }
+          redirect_is_preserved() {
+            local headers="$RUNNER_TEMP/redirect-headers"
+            curl --silent --show-error --max-time 20 --dump-header "$headers" \
+              --output /dev/null 'http://www.bzl.no/deployment-check?source=workflow' \
+              && grep -qi '^Location: https://www\.bzl\.no/deployment-check?source=workflow' "$headers"
+          }
+          if status_is 200 https://www.bzl.no/ \
+            && status_is 200 https://www.bzl.no/healthz \
+            && status_is 404 https://www.bzl.no/api/health \
+            && status_is 404 https://www.bzl.no/assets/deployment-check-missing.js \
+            && status_is 200 https://www.bzl.no/deployment-check-deep-link \
+            && status_is 308 'http://www.bzl.no/deployment-check?source=workflow' \
+            && redirect_is_preserved; then
+            exit 0
+          fi
+          timeout 300 ssh deploy-droplet \
+            "sudo -n /usr/local/sbin/site-deploy rollback '$SITE_ID' '$RELEASE_ID' --public"
+          exit 1
