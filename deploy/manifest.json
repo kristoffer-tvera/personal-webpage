@@ -1,10 +1,11 @@
 {
   "schema": 1,
   "site": "personal-webpage",
-  "domains": ["www.bzl.no"],
+  "domains": ["www.bzl.no", "bzl.no"],
   "ports": [18080],
   "checks": [
     { "url": "https://www.bzl.no/", "status": 200 },
-    { "url": "https://www.bzl.no/healthz", "status": 200 }
+    { "url": "https://www.bzl.no/healthz", "status": 200 },
+    { "url": "https://bzl.no/healthz", "status": 200 }
   ]
 }

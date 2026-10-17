@@ -171,9 +171,9 @@ jobs:
           [[ "$IMAGE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
           mkdir -p "$RUNNER_TEMP/release/nginx"
           cp deploy/compose.yaml deploy/manifest.json "$RUNNER_TEMP/release/"
-          cp deploy/nginx/www.bzl.no.conf "$RUNNER_TEMP/release/nginx/"
+          cp deploy/nginx/www.bzl.no.conf deploy/nginx/bzl.no.conf "$RUNNER_TEMP/release/nginx/"
           printf 'WEB_IMAGE=%s@%s\n' "$IMAGE_NAME" "$IMAGE_DIGEST" > "$RUNNER_TEMP/release/images.env"
-          test "$(find "$RUNNER_TEMP/release" -type f | wc -l)" -eq 4
+          test "$(find "$RUNNER_TEMP/release" -type f | wc -l)" -eq 5
           test "$(grep -Ec '^WEB_IMAGE=ghcr\.io/[^ ]+@sha256:[a-f0-9]{64}$' "$RUNNER_TEMP/release/images.env")" -eq 1
 
       - name: Deploy release bundle
@@ -232,18 +232,23 @@ jobs:
             [[ "$actual" == "$expected" ]]
           }
           redirect_is_preserved() {
-            local headers="$RUNNER_TEMP/redirect-headers"
+            local url="$1" expected_location="$2" headers="$RUNNER_TEMP/redirect-headers"
             curl --silent --show-error --max-time 20 --dump-header "$headers" \
-              --output /dev/null 'http://www.bzl.no/deployment-check?source=workflow' \
-              && grep -qi '^Location: https://www\.bzl\.no/deployment-check?source=workflow' "$headers"
+              --output /dev/null "$url" \
+              && grep -Fqi "Location: $expected_location" "$headers"
           }
           if status_is 200 https://www.bzl.no/ \
             && status_is 200 https://www.bzl.no/healthz \
+            && status_is 200 https://bzl.no/healthz \
             && status_is 404 https://www.bzl.no/api/health \
             && status_is 404 https://www.bzl.no/assets/deployment-check-missing.js \
             && status_is 200 https://www.bzl.no/deployment-check-deep-link \
             && status_is 308 'http://www.bzl.no/deployment-check?source=workflow' \
-            && redirect_is_preserved; then
+            && redirect_is_preserved 'http://www.bzl.no/deployment-check?source=workflow' 'https://www.bzl.no/deployment-check?source=workflow' \
+            && status_is 308 'http://bzl.no/deployment-check?source=workflow' \
+            && redirect_is_preserved 'http://bzl.no/deployment-check?source=workflow' 'https://www.bzl.no/deployment-check?source=workflow' \
+            && status_is 308 'https://bzl.no/deployment-check?source=workflow' \
+            && redirect_is_preserved 'https://bzl.no/deployment-check?source=workflow' 'https://www.bzl.no/deployment-check?source=workflow'; then
             exit 0
           fi
           timeout 300 ssh deploy-droplet \
