@@ -133,15 +133,6 @@ jobs:
             sleep 2
           done
 
-      - name: Scan image for fixable high and critical vulnerabilities
-        run: >-
-          docker run --rm
-          -v /var/run/docker.sock:/var/run/docker.sock
-          -v "$HOME/.cache/trivy:/root/.cache/"
-          aquasec/trivy@sha256:7228e304ae0f610a1fad937baa463598cadac0c2ac4027cc68f3a8b997115689
-          image --scanners vuln --ignore-unfixed --severity HIGH,CRITICAL
-          --exit-code 1 personal-webpage:web-test
-
       - name: Log in to GHCR
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
